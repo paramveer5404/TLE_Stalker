@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TLE Problem Tracker</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #444;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c8bf5;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        #handleForm {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #bbb;
+            border-radius: 6px 0 0 6px;
+            width: 75%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            background-color: #2c8bf5;
+            color: white;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #1e6fd1;
+        }
+        #results {
+            margin-top: 25px;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            color: #555;
+            font-weight: normal;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+            height: 12px;
+            position: relative;
+        }
+        .progress {
+            height: 100%;
+            background-color: #59d966;
+            width: 0;
+            transition: width 0.4s ease;
+            border-radius: 8px;
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 25px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>TLE Problem Tracker</h1>
+        <form id="handleForm">
+            <input type="text" id="handle" placeholder="Enter Codeforces handle" required>
+            <button type="submit">Fetch Results</button>
+        </form>
+        <div id="results"></div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const problemDict = { 
+    800: [
+        [1903, 'A'], [1901, 'A'], [1900, 'A'], [1899, 'A'], [1896, 'A'], 
+        [1890, 'A'], [1881, 'A'], [1878, 'A'], [1877, 'A'], [1873, 'C'], 
+        [1866, 'A'], [1862, 'B'], [1859, 'A'], [1858, 'A'], [1857, 'A'], 
+        [1853, 'A'], [1845, 'A'], [1837, 'A'], [1834, 'A'], [1831, 'A'], 
+        [1829, 'B'], [1814, 'A'], [1806, 'A'], [1805, 'A'], [1791, 'C'], 
+        [1789, 'A'], [1788, 'A'], [1783, 'A'], [1777, 'A'], [1766, 'A'], 
+        [1761, 'A']
+    ],
+    900: [
+        [1904, 'A'], [1883, 'B'], [1878, 'C'], [1875, 'A'], [1869, 'A'], 
+        [1855, 'B'], [1850, 'D'], [1837, 'B'], [1828, 'B'], [1807, 'D'], 
+        [1794, 'B'], [1726, 'A'], [1696, 'B'], [1679, 'A'], [1675, 'B'], 
+        [1666, 'D'], [1665, 'B'], [1624, 'B'], [1607, 'B'], [1606, 'A'], 
+        [1593, 'B'], [1582, 'B'], [1559, 'A'], [1543, 'A'], [1537, 'B'], 
+        [1475, 'A'], [1471, 'A'], [1440, 'B'], [1380, 'A'], [1373, 'B'], 
+        [1374, 'B']
+    ],
+    1000: [
+        [1913, 'B'], [1883, 'C'], [1876, 'A'], [1859, 'B'], [1849, 'B'], 
+        [1840, 'C'], [1831, 'B'], [1791, 'D'], [1765, 'M'], [1744, 'C'], 
+        [1725, 'B'], [1715, 'B'], [1704, 'B'], [1691, 'B'], [1690, 'D'], 
+        [1659, 'A'], [1632, 'B'], [1620, 'B'], [1614, 'B'], [1567, 'B'], 
+        [1506, 'C'], [1485, 'A'], [1474, 'B'], [1447, 'B'], [1438, 'B'], 
+        [1418, 'A'], [1411, 'B'], [1374, 'C'], [1362, 'A'], [1312, 'B'], 
+        [1155, 'A']
+    ],
+    1100: [
+        [1917, 'B'], [1914, 'C'], [1904, 'B'], [1899, 'C'], [1899, 'B'], 
+        [1891, 'B'], [1873, 'E'], [1869, 'B'], [1850, 'E'], [1842, 'B'], 
+        [1832, 'B'], [1827, 'A'], [1826, 'B'], [1821, 'B'], [1820, 'B'], 
+        [1807, 'G2'], [1797, 'B'], [1791, 'G1'], [1791, 'E'], [1780, 'B'], 
+        [1742, 'D'], [1731, 'B'], [1708, 'B'], [1682, 'B'], [1673, 'B'], 
+        [1669, 'F'], [1656, 'B'], [1631, 'B'], [1618, 'C'], [1610, 'B'], 
+        [1511, 'C']
+    ],
+    1200: [
+        [1914, 'D'], [1909, 'B'], [1872, 'D'], [1857, 'C'], [1848, 'B'], 
+        [1832, 'C'], [1808, 'B'], [1793, 'C'], [1790, 'D'], [1742, 'E'], 
+        [1734, 'C'], [1729, 'D'], [1704, 'C'], [1703, 'E'], [1692, 'E'], 
+        [1679, 'B'], [1671, 'C'], [1635, 'C'], [1594, 'C'], [1582, 'C'], 
+        [1541, 'B'], [1539, 'C'], [1536, 'B'], [1527, 'B1'], [1520, 'D'], 
+        [1514, 'B'], [1504, 'B'], [1497, 'B'], [1487, 'B'], [1433, 'D'], 
+        [1420, 'B']
+    ],
+    1300: [
+        [1931, 'D'], [1927, 'D'], [1915, 'E'], [1881, 'D'], [1879, 'C'], 
+        [1857, 'D'], [1846, 'E1'], [1794, 'C'], [1775, 'B'], [1703, 'F'], 
+        [1676, 'G'], [1669, 'H'], [1612, 'C'], [1601, 'A'], [1561, 'C'], 
+        [1498, 'B'], [1470, 'A'], [1459, 'B'], [1372, 'B'], [1366, 'B'], 
+        [1364, 'B'], [1360, 'D'], [1294, 'C'], [1285, 'B'], [1237, 'B'], 
+        [1178, 'B'], [1119, 'B'], [1077, 'C'], [862, 'B'], [808, 'B'], 
+        [665, 'C']
+    ],
+    1400: [
+        [1931, 'E'], [1919, 'C'], [1907, 'D'], [1904, 'C'], [1883, 'G1'], 
+        [1878, 'E'], [1837, 'D'], [1830, 'A'], [1771, 'B'], [1759, 'D'], 
+        [1714, 'E'], [1701, 'C'], [1692, 'G'], [1648, 'A'], [1634, 'B'], 
+        [1520, 'E'], [1519, 'C'], [1513, 'B'], [1475, 'C'], [1374, 'D'], 
+        [1362, 'C'], [1350, 'B'], [1320, 'A'], [1215, 'B'], [1195, 'C'], 
+        [1183, 'D'], [1167, 'C'], [1167, 'B'], [1143, 'C'], [1110, 'B'], 
+        [414, 'B']
+    ],
+    1500: [
+        [1915, 'F'], [1891, 'C'], [1881, 'E'], [1872, 'E'], [1795, 'C'], 
+        [1776, 'L'], [1673, 'C'], [1659, 'C'], [1646, 'C'], [1516, 'B'], 
+        [1486, 'B'], [1466, 'D'], [1418, 'C'], [1416, 'A'], [1404, 'A'], 
+        [1338, 'A'], [1332, 'C'], [1325, 'C'], [1323, 'B'], [1201, 'B'], 
+        [1139, 'C'], [1133, 'D'], [1106, 'D'], [1101, 'C'], [1084, 'C'], 
+        [982, 'C'], [976, 'C'], [960, 'B'], [891, 'A'], [845, 'C'], 
+        [276, 'C']
+    ],
+    1600: [
+        [1920, 'C'], [1907, 'E'], [1886, 'C'], [1856, 'C'], [1843, 'E'], 
+        [1833, 'E'], [1829, 'G'], [1798, 'D'], [1795, 'D'], [1781, 'C'], 
+        [1778, 'C'], [1775, 'C'], [1741, 'E'], [1730, 'B'], [1702, 'E'], 
+        [1698, 'D'], [1660, 'D'], [1633, 'D'], [1610, 'C'], [1555, 'D'], 
+        [1537, 'E1'], [1528, 'A'], [1498, 'C'], [1475, 'E'], [1458, 'A'], 
+        [1407, 'C'], [1398, 'C'], [1389, 'B'], [1349, 'A'], [1336, 'A'], 
+        [1305, 'C']
+    ],
+};
+
+        async function fetchUserSubmissions(handle, from, count) {
+            const url = `https://codeforces.com/api/user.status?handle=${handle}&from=${from}&count=${count}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                const data = await response.json();
+                if (data.status !== "OK") throw new Error(data.comment || 'An error occurred');
+                return data.result;
+            } catch (error) {
+                showError(error.message);
+                throw error;
+            }
+        }
+
+        function countSolvedProblemsByRating(submissions, problemDict) {
+            const solvedProblems = {};
+            for (const rating in problemDict) {
+                solvedProblems[rating] = new Set();
+            }
+
+            for (const submission of submissions) {
+                if (submission.verdict === "OK") {
+                    const contestId = submission.problem.contestId;
+                    const index = submission.problem.index;
+
+                    for (const rating in problemDict) {
+                        for (const problem of problemDict[rating]) {
+                            if (problem[0] === contestId && problem[1] === index) {
+                                solvedProblems[rating].add(`${contestId}-${index}`);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const ratingCounts = {};
+            for (const rating in problemDict) {
+                ratingCounts[rating] = solvedProblems[rating].size;
+            }
+
+            return ratingCounts;
+        }
+
+        function updateResults(solvedProblemsByRating, problemDict) {
+            const resultsDiv = document.getElementById('results');
+            let resultsHTML = '';
+
+            for (const rating of Object.keys(problemDict).sort((a, b) => a - b)) {
+                const solvedCount = solvedProblemsByRating[rating] || 0;
+                const totalProblems = problemDict[rating].length;
+                const progressPercent = (solvedCount / totalProblems) * 100;
+
+                resultsHTML += `
+                    <div class="result-row">
+                        <span>Rating: ${rating}</span>
+                        <span>${solvedCount}/${totalProblems}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${progressPercent}%;"></div>
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = resultsHTML;
+        }
+
+        function showError(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const handle = document.getElementById('handle').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            try {
+                const submissions = await fetchUserSubmissions(handle, 1, 1000);
+                const solvedProblemsByRating = countSolvedProblemsByRating(submissions, problemDict);
+                updateResults(solvedProblemsByRating, problemDict);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        document.getElementById('handleForm').addEventListener('submit', handleSubmit);
+    </script>
+</body>
+</html>
