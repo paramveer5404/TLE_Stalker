@@ -11,6 +11,7 @@
             padding: 0;
             background-color: #f9f9f9;
             color: #444;
+            position: relative;
         }
         .container {
             max-width: 600px;
@@ -19,6 +20,7 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
         h1 {
             color: #2c8bf5;
@@ -31,6 +33,7 @@
             display: flex;
             justify-content: center;
             margin-bottom: 25px;
+            position: relative;
         }
         input[type="text"] {
             padding: 14px;
@@ -52,6 +55,21 @@
         }
         button:hover {
             background-color: #1e6fd1;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin: 20px auto 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         #results {
             margin-top: 25px;
@@ -86,22 +104,58 @@
             margin-top: 25px;
             font-weight: 500;
         }
+        .top-right-corner {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+        }
+        .top-right-corner p {
+            margin: 0 0 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
+        <!-- Add the text and GitHub star button here -->
+        <div class="top-right-corner">
+            <a class="github-button" href="https://github.com/paramveer5404/TLE_Stalker" data-color-scheme="no-preference: light; light: light; dark: dark;" data-icon="octicon-star" data-size="large" aria-label="Star paramveer5404/TLE_Stalker on GitHub">Star</a>
+        </div>
+
         <h1>TLE Problem Tracker</h1>
         <form id="handleForm">
             <input type="text" id="handle" placeholder="Enter Codeforces handle" required>
             <button type="submit">Fetch Results</button>
-        </form>
+            <!-- Loading spinner -->
+            </form>
+            <div class="loading-spinner" id="loadingSpinner"></div>
         <div id="results"></div>
         <div id="log"></div>
     </div>
 
     <script>
-        const problemDict = { 
+        document.getElementById('handleForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const handle = document.getElementById('handle').value;
+            const resultsDiv = document.getElementById('results');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            resultsDiv.innerHTML = '';
+            loadingSpinner.style.display = 'block';
+
+            try {
+                const submissions = await fetchUserSubmissions(handle, 1, 1000);
+                const solvedProblemsByRating = countSolvedProblemsByRating(submissions, problemDict);
+                updateResults(solvedProblemsByRating, problemDict);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        });
+const problemDict = { 
     800: [
         [1903, 'A'], [1901, 'A'], [1900, 'A'], [1899, 'A'], [1896, 'A'], 
         [1890, 'A'], [1881, 'A'], [1878, 'A'], [1877, 'A'], [1873, 'C'], 
@@ -275,5 +329,6 @@
 
         document.getElementById('handleForm').addEventListener('submit', handleSubmit);
     </script>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>
