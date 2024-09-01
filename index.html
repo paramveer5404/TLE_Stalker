@@ -146,7 +146,7 @@
             loadingSpinner.style.display = 'block';
 
             try {
-                const submissions = await fetchUserSubmissions(handle, 1, 1000);
+                const submissions = await fetchUserSubmissions(handle, 1, 10000);
                 const solvedProblemsByRating = countSolvedProblemsByRating(submissions, problemDict);
                 updateResults(solvedProblemsByRating, problemDict);
             } catch (error) {
@@ -319,7 +319,7 @@ const problemDict = {
             resultsDiv.innerHTML = '';
 
             try {
-                const submissions = await fetchUserSubmissions(handle, 1, 1000);
+                const submissions = await fetchUserSubmissions(handle, 1, 10000);
                 const solvedProblemsByRating = countSolvedProblemsByRating(submissions, problemDict);
                 updateResults(solvedProblemsByRating, problemDict);
             } catch (error) {
